@@ -2,17 +2,16 @@
 
 @layer base {
   :root {
-    --bg-main: #F5F2EA;
+    --bg-main: #F8FAFC;
     --bg-card: #FFFFFF;
-    --bg-sidebar: #111827;
-    --border-color: #E8E4DA;
-    --text-primary: #182230;
+    --bg-sidebar: #FFFFFF;
+    --border-color: #E2E8F0;
+    --text-primary: #0F172A;
     --text-secondary: #64748B;
-    --gold: #C5A46D;
-    --blue: #1D4ED8;
-    --success: #16856A;
-    --warning: #C18A35;
-    --danger: #C64747;
+    --blue: #2563EB;
+    --success: #059669;
+    --warning: #D97706;
+    --danger: #DC2626;
   }
 
   body {
@@ -20,7 +19,6 @@
     color: var(--text-primary);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     overflow-x: hidden;
-    letter-spacing: -0.01em;
   }
 
   code, pre, .font-mono {
@@ -28,34 +26,33 @@
   }
 }
 
-/* Luxury Card & Surface utility styles */
-.luxury-card {
+/* Clean Clean Card & Surface utility styles */
+.clean-card {
   background-color: #FFFFFF;
-  border: 1px solid #E8E4DA;
+  border: 1px solid #E2E8F0;
   border-radius: 0.75rem;
-  box-shadow: 0 1px 3px rgba(24, 34, 48, 0.04), 0 1px 2px rgba(24, 34, 48, 0.02);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  transition: all 0.15s ease;
 }
 
-.luxury-card-hover:hover {
-  border-color: #D5CEBE;
-  box-shadow: 0 6px 18px rgba(24, 34, 48, 0.06);
-  transform: translateY(-1px);
+.clean-card:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.05);
 }
 
-.luxury-table-header {
-  background-color: #FAF8F5;
-  border-bottom: 1px solid #E8E4DA;
+.clean-table-header {
+  background-color: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
 }
 
-/* Subtle, refined scrollbar */
+/* Subtle, clean scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #F5F2EA;
+  background: #F8FAFC;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -65,16 +62,4 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
-}
-
-/* Sidebar scrollbar */
-.sidebar-scroll::-webkit-scrollbar-track {
-  background: #111827;
-}
-.sidebar-scroll::-webkit-scrollbar-thumb {
-  background: #1E293B;
-  border-radius: 3px;
-}
-.sidebar-scroll::-webkit-scrollbar-thumb:hover {
-  background: #334155;
 }

@@ -28,17 +28,17 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ stats }) => {
 
   return (
     <div className="space-y-6">
-      {/* Editorial Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-2 border-b border-[#E8E4DA]">
+      {/* Clean Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-[#E2E8F0]">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold tracking-wider uppercase text-[#C5A46D]">
+            <span className="text-[11px] font-semibold tracking-wider uppercase text-[#2563EB]">
               Formal Documentation
             </span>
             <span className="text-slate-300">•</span>
             <span className="text-[11px] font-mono text-[#64748B]">Exercise 12 Academic Deliverable</span>
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-[#182230] mt-1">
+          <h1 className="text-2xl font-bold tracking-tight text-[#0F172A] mt-1">
             Network Analysis Audit & Lab Guide
           </h1>
           <p className="text-xs text-[#64748B] mt-0.5">
@@ -52,7 +52,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ stats }) => {
             href={getPdfReportUrl()}
             target="_blank"
             rel="noreferrer"
-            className="px-4 py-2 rounded-lg bg-[#1D4ED8] hover:bg-[#1E40AF] text-white text-xs font-semibold flex items-center gap-2 shadow-sm transition"
+            className="px-4 py-2 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-semibold flex items-center gap-2 shadow-xs transition"
           >
             <Download className="w-3.5 h-3.5" />
             Download PDF Report
@@ -61,41 +61,41 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ stats }) => {
           <a
             href={getCsvReportUrl()}
             download="netsecure_packets.csv"
-            className="px-3.5 py-2 rounded-lg bg-white hover:bg-[#FAF8F5] text-[#182230] text-xs font-medium border border-[#E8E4DA] flex items-center gap-1.5 shadow-sm transition hover:border-[#D5CEBE]"
+            className="px-3.5 py-2 rounded-lg bg-white hover:bg-[#F8FAFC] text-[#0F172A] text-xs font-medium border border-[#E2E8F0] flex items-center gap-1.5 shadow-xs transition"
           >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-[#16856A]" />
+            <FileSpreadsheet className="w-3.5 h-3.5 text-[#059669]" />
             Export CSV
           </a>
 
           <a
             href={getPcapExportUrl()}
             download="netsecure_capture.pcap"
-            className="px-3.5 py-2 rounded-lg bg-white hover:bg-[#FAF8F5] text-[#182230] text-xs font-medium border border-[#E8E4DA] flex items-center gap-1.5 shadow-sm transition hover:border-[#D5CEBE]"
+            className="px-3.5 py-2 rounded-lg bg-white hover:bg-[#F8FAFC] text-[#0F172A] text-xs font-medium border border-[#E2E8F0] flex items-center gap-1.5 shadow-xs transition"
           >
-            <Download className="w-3.5 h-3.5 text-[#C5A46D]" />
+            <Download className="w-3.5 h-3.5 text-[#2563EB]" />
             Export PCAP
           </a>
         </div>
       </div>
 
       {/* Lab Project Team Roster (4 Members) */}
-      <div className="luxury-card p-6 bg-white space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-[#E8E4DA]">
+      <div className="clean-card p-6 bg-white space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
           <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-[#C5A46D]" />
-            <h3 className="font-semibold text-sm text-[#182230]">Project Team Roster (Team of 4 Members)</h3>
+            <Users className="w-4 h-4 text-[#2563EB]" />
+            <h3 className="font-semibold text-sm text-[#0F172A]">Project Team Roster (Team of 4 Members)</h3>
           </div>
           <span className="text-[11px] font-mono text-[#64748B]">Information Security • Semester 5</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {teamMembers.map((member, i) => (
-            <div key={i} className="p-4 rounded-lg bg-[#FAF8F5] border border-[#E8E4DA] flex flex-col justify-between">
+            <div key={i} className="p-4 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col justify-between">
               <div>
-                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-white text-[#C5A46D] border border-[#E8E4DA] font-semibold">
+                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-white text-[#2563EB] border border-[#E2E8F0] font-semibold">
                   Member #{i + 1}
                 </span>
-                <h4 className="font-semibold text-[#182230] text-sm mt-2">{member.name}</h4>
+                <h4 className="font-semibold text-[#0F172A] text-sm mt-2">{member.name}</h4>
               </div>
               <p className="text-[11px] text-[#64748B] mt-2 leading-relaxed">{member.role}</p>
             </div>
@@ -104,23 +104,23 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ stats }) => {
       </div>
 
       {/* Lab Objectives Verification Checklist */}
-      <div className="luxury-card p-6 bg-white space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-[#E8E4DA]">
+      <div className="clean-card p-6 bg-white space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
           <div className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-[#16856A]" />
-            <h3 className="font-semibold text-sm text-[#182230]">Lab Exercise 12 Verification Matrix</h3>
+            <BookOpen className="w-4 h-4 text-[#059669]" />
+            <h3 className="font-semibold text-sm text-[#0F172A]">Lab Exercise 12 Verification Matrix</h3>
           </div>
-          <span className="text-[11px] font-mono text-[#16856A] font-semibold">6 / 6 Milestones Completed</span>
+          <span className="text-[11px] font-mono text-[#059669] font-semibold">6 / 6 Milestones Completed</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {milestones.map((m, i) => (
-            <div key={i} className="p-4 rounded-lg bg-[#FAF8F5] border border-[#E8E4DA] flex items-start justify-between gap-3">
+            <div key={i} className="p-4 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] flex items-start justify-between gap-3">
               <div>
-                <h4 className="font-semibold text-[#182230] text-xs">{m.title}</h4>
+                <h4 className="font-semibold text-[#0F172A] text-xs">{m.title}</h4>
                 <p className="text-[11px] text-[#64748B] mt-1 leading-relaxed">{m.desc}</p>
               </div>
-              <span className="px-2.5 py-0.5 rounded-full bg-[#F0FDF4] text-[#16856A] text-[10px] font-mono font-semibold border border-[#DCFCE7] shrink-0">
+              <span className="px-2.5 py-0.5 rounded-full bg-[#ECFDF5] text-[#059669] text-[10px] font-mono font-semibold border border-[#D1FAE5] shrink-0">
                 {m.status}
               </span>
             </div>
@@ -129,19 +129,19 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ stats }) => {
       </div>
 
       {/* Report Sections Preview */}
-      <div className="luxury-card p-6 bg-white space-y-4">
-        <h3 className="font-semibold text-sm text-[#182230]">Contents of the Exported PDF Audit Report</h3>
+      <div className="clean-card p-6 bg-white space-y-4">
+        <h3 className="font-semibold text-sm text-[#0F172A]">Contents of the Exported PDF Audit Report</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono">
-          <div className="p-4 rounded-lg bg-[#FAF8F5] border border-[#E8E4DA] text-[#475569]">
-            <b className="text-[#1D4ED8] block mb-1 font-sans">Section 1: Capture Metadata</b>
+          <div className="p-4 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#475569]">
+            <b className="text-[#2563EB] block mb-1 font-sans">Section 1: Capture Metadata</b>
             Host IPs, MAC addresses, LAN subnet mask, timestamps, interface link speeds, and driver state.
           </div>
-          <div className="p-4 rounded-lg bg-[#FAF8F5] border border-[#E8E4DA] text-[#475569]">
-            <b className="text-[#16856A] block mb-1 font-sans">Section 2: ICMP Ping Correlation</b>
+          <div className="p-4 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#475569]">
+            <b className="text-[#059669] block mb-1 font-sans">Section 2: ICMP Ping Correlation</b>
             Echo Request/Reply pairs with Type 8 / Type 0, RTT latency, sequence numbers, and packet loss.
           </div>
-          <div className="p-4 rounded-lg bg-[#FAF8F5] border border-[#E8E4DA] text-[#475569]">
-            <b className="text-[#C64747] block mb-1 font-sans">Section 3: Security Vulnerability Evidence</b>
+          <div className="p-4 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#475569]">
+            <b className="text-[#DC2626] block mb-1 font-sans">Section 3: Security Vulnerability Evidence</b>
             Wireshark/TShark packet body extraction proving cleartext password exposure & TLS recommendation.
           </div>
         </div>

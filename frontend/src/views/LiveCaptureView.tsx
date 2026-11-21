@@ -1,11 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { 
   Radio, Play, Square, Filter, Search, Upload, Download, 
-  RefreshCw, CheckCircle2, AlertCircle, FileUp, Sparkles, Shield, X
+  CheckCircle2, Shield
 } from 'lucide-react';
 import { 
   PacketItem, NetworkInterface, startCapture, stopCapture, 
-  uploadPcap, loadSamplePcap, getPcapExportUrl 
+  uploadPcap, getPcapExportUrl 
 } from '../api';
 
 interface LiveCaptureViewProps {
@@ -104,44 +104,36 @@ export const LiveCaptureView: React.FC<LiveCaptureViewProps> = ({
 
   const getProtocolBadge = (proto: string) => {
     switch (proto.toUpperCase()) {
-      case 'ICMP': return 'bg-[#F0FDF4] text-[#16856A] border-[#DCFCE7]';
-      case 'HTTP': return 'bg-[#FFFBEB] text-[#C18A35] border-[#FEF3C7]';
-      case 'HTTPS': return 'bg-[#F0F9FF] text-[#0284C7] border-[#E0F2FE]';
-      case 'DNS': return 'bg-[#F5F3FF] text-[#7C3AED] border-[#EDE9FE]';
-      case 'ARP': return 'bg-[#FDF2F8] text-[#DB2777] border-[#FCE7F3]';
-      case 'FTP': return 'bg-[#FEF2F2] text-[#C64747] border-[#FEE2E2]';
-      case 'TCP': return 'bg-[#EFF6FF] text-[#1D4ED8] border-[#DBEAFE]';
-      case 'UDP': return 'bg-[#EEF2FF] text-[#4F46E5] border-[#E0E7FF]';
-      default: return 'bg-[#FAF8F5] text-[#64748B] border-[#E8E4DA]';
+      case 'ICMP': return 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0]';
+      case 'HTTP': return 'bg-[#FFFBEB] text-[#D97706] border-[#FDE68A]';
+      case 'HTTPS': return 'bg-[#F0F9FF] text-[#0284C7] border-[#BAE6FD]';
+      case 'DNS': return 'bg-[#F5F3FF] text-[#7C3AED] border-[#DDD6FE]';
+      case 'ARP': return 'bg-[#FDF2F8] text-[#DB2777] border-[#FBCFE8]';
+      case 'FTP': return 'bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]';
+      case 'TCP': return 'bg-[#EFF6FF] text-[#2563EB] border-[#BFDBFE]';
+      case 'UDP': return 'bg-[#EEF2FF] text-[#4F46E5] border-[#C7D2FE]';
+      default: return 'bg-[#F1F5F9] text-[#64748B] border-[#E2E8F0]';
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Editorial Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-2 border-b border-[#E8E4DA]">
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#E2E8F0]">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold tracking-wider uppercase text-[#C5A46D]">
-              Packet Dissection
-            </span>
-            <span className="text-slate-300">•</span>
-            <span className="text-[11px] font-mono text-[#64748B]">TShark Capture Instrument</span>
-          </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-[#182230] mt-1">
-            Live Packet Capture & Telemetry
+          <h1 className="text-xl font-bold tracking-tight text-[#0F172A]">
+            Live Packet Capture
           </h1>
           <p className="text-xs text-[#64748B] mt-0.5">
-            Continuous packet streaming across physical and loopback network adapters.
+            Capture, inspect, and filter network packets in real time.
           </p>
         </div>
 
-        {/* Start / Stop Capture Trigger */}
-        <div className="flex items-center gap-3">
+        <div>
           {isCapturing ? (
             <button
               onClick={handleStopClick}
-              className="px-5 py-2.5 rounded-lg bg-[#C64747] hover:bg-[#B91C1C] text-white text-xs font-semibold flex items-center gap-2 shadow-sm transition cursor-pointer"
+              className="px-4 py-1.5 rounded-lg bg-[#DC2626] hover:bg-[#B91C1C] text-white text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
             >
               <Square className="w-3.5 h-3.5 fill-current" />
               Stop Capture
@@ -149,7 +141,7 @@ export const LiveCaptureView: React.FC<LiveCaptureViewProps> = ({
           ) : (
             <button
               onClick={handleStartClick}
-              className="px-5 py-2.5 rounded-lg bg-[#16856A] hover:bg-[#13735B] text-white text-xs font-semibold flex items-center gap-2 shadow-sm transition cursor-pointer"
+              className="px-4 py-1.5 rounded-lg bg-[#059669] hover:bg-[#047857] text-white text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
             >
               <Play className="w-3.5 h-3.5 fill-current" />
               Start Live Capture
@@ -158,18 +150,17 @@ export const LiveCaptureView: React.FC<LiveCaptureViewProps> = ({
         </div>
       </div>
 
-      {/* Capture Control & Filter Bar */}
-      <div className="luxury-card p-5 bg-white space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-3.5">
-            {/* Interface Selector */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-[#182230]">Interface:</span>
+      {/* Control Bar */}
+      <div className="p-4 rounded-xl bg-white border border-[#E2E8F0] shadow-xs space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-medium text-[#64748B]">Interface:</span>
               <select
                 value={selectedIface}
                 onChange={(e) => setSelectedIface(e.target.value)}
                 disabled={isCapturing}
-                className="px-3 py-2 rounded-lg bg-[#FAF8F5] border border-[#E8E4DA] text-xs font-mono text-[#182230] focus:outline-none focus:border-[#C5A46D] max-w-xs"
+                className="px-2.5 py-1.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-xs font-mono text-[#0F172A] focus:outline-none focus:border-[#2563EB] max-w-xs"
               >
                 {interfaces.map((iface, i) => (
                   <option key={i} value={(iface as any).device_name || iface.name}>
@@ -179,22 +170,20 @@ export const LiveCaptureView: React.FC<LiveCaptureViewProps> = ({
               </select>
             </div>
 
-            {/* BPF Filter Input */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-[#182230]">BPF:</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-medium text-[#64748B]">BPF:</span>
               <input
                 type="text"
                 value={bpfFilter}
                 onChange={(e) => setBpfFilter(e.target.value)}
                 disabled={isCapturing}
                 placeholder="e.g. icmp or port 80"
-                className="px-3 py-2 rounded-lg bg-[#FAF8F5] border border-[#E8E4DA] text-xs font-mono text-[#182230] placeholder-slate-400 focus:outline-none focus:border-[#C5A46D] w-48"
+                className="px-2.5 py-1.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-xs font-mono text-[#0F172A] placeholder-slate-400 focus:outline-none focus:border-[#2563EB] w-44"
               />
             </div>
           </div>
 
-          {/* PCAP Operations */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <input
               type="file"
               ref={fileInputRef}
@@ -205,47 +194,47 @@ export const LiveCaptureView: React.FC<LiveCaptureViewProps> = ({
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
-              className="px-3.5 py-2 rounded-lg bg-white hover:bg-[#FAF8F5] text-[#182230] text-xs font-medium border border-[#E8E4DA] flex items-center gap-1.5 shadow-sm transition hover:border-[#D5CEBE] cursor-pointer"
+              className="px-3 py-1.5 rounded-lg bg-white hover:bg-[#F8FAFC] text-[#475569] text-xs font-medium border border-[#E2E8F0] flex items-center gap-1 transition cursor-pointer"
             >
-              <Upload className="w-3.5 h-3.5 text-[#182230]" />
+              <Upload className="w-3.5 h-3.5 text-[#64748B]" />
               {isUploading ? 'Parsing...' : 'Upload PCAP'}
             </button>
 
             <a
               href={getPcapExportUrl()}
               download="netsecure_capture.pcap"
-              className="px-3.5 py-2 rounded-lg bg-white hover:bg-[#FAF8F5] text-[#182230] text-xs font-medium border border-[#E8E4DA] flex items-center gap-1.5 shadow-sm transition hover:border-[#D5CEBE]"
+              className="px-3 py-1.5 rounded-lg bg-white hover:bg-[#F8FAFC] text-[#475569] text-xs font-medium border border-[#E2E8F0] flex items-center gap-1 transition"
             >
-              <Download className="w-3.5 h-3.5 text-[#1D4ED8]" />
+              <Download className="w-3.5 h-3.5 text-[#2563EB]" />
               Export PCAP
             </a>
           </div>
         </div>
 
         {uploadStatus && (
-          <div className="px-4 py-2.5 rounded-lg bg-[#FAF8F5] border border-[#C5A46D]/60 text-xs font-mono text-[#182230] flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#16856A]" />
+          <div className="p-2.5 rounded-lg bg-[#EFF6FF] border border-[#BFDBFE] text-xs text-[#1E40AF] flex items-center justify-between">
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#2563EB]" />
               {uploadStatus}
             </span>
-            <button onClick={() => setUploadStatus(null)} className="text-slate-400 hover:text-[#182230]">✕</button>
+            <button onClick={() => setUploadStatus(null)} className="text-slate-400 hover:text-[#0F172A]">✕</button>
           </div>
         )}
 
-        {/* Filter Pills & Live Search Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#E8E4DA]">
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-            <span className="text-[11px] font-semibold text-[#64748B] mr-1">Filter:</span>
+        {/* Filter Pills & Search */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-[#F1F5F9]">
+          <div className="flex items-center gap-1 overflow-x-auto">
+            <span className="text-[11px] text-[#94A3B8] mr-1">Filter:</span>
             {protocolFilters.map((proto) => {
               const isActive = selectedProtocol.toUpperCase() === proto.toUpperCase();
               return (
                 <button
                   key={proto}
                   onClick={() => onProtocolChange(proto)}
-                  className={`px-3 py-1 rounded-md text-xs font-mono transition cursor-pointer ${
+                  className={`px-2.5 py-0.5 rounded text-xs font-mono transition cursor-pointer ${
                     isActive
-                      ? 'bg-[#182230] text-white font-semibold shadow-xs'
-                      : 'bg-[#FAF8F5] text-[#64748B] border border-[#E8E4DA] hover:text-[#182230] hover:bg-white'
+                      ? 'bg-[#2563EB] text-white font-medium'
+                      : 'bg-[#F8FAFC] text-[#64748B] border border-[#E2E8F0] hover:bg-white'
                   }`}
                 >
                   {proto}
@@ -254,36 +243,35 @@ export const LiveCaptureView: React.FC<LiveCaptureViewProps> = ({
             })}
           </div>
 
-          {/* Search Box */}
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Filter IP, MAC, Info..."
-              className="pl-8 pr-3 py-1.5 rounded-lg bg-[#FAF8F5] border border-[#E8E4DA] text-xs text-[#182230] placeholder-slate-400 focus:outline-none focus:border-[#C5A46D] w-60"
+              className="pl-7 pr-3 py-1 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-xs text-[#0F172A] focus:outline-none focus:border-[#2563EB] w-56"
             />
           </div>
         </div>
       </div>
 
-      {/* Real-time Packet Table */}
-      <div className="luxury-card bg-white overflow-hidden space-y-0">
-        <div className="overflow-x-auto max-h-[520px]">
+      {/* Packet Table */}
+      <div className="p-0 rounded-xl bg-white border border-[#E2E8F0] shadow-xs overflow-hidden">
+        <div className="overflow-x-auto max-h-[500px]">
           <table className="w-full text-xs text-left">
-            <thead className="luxury-table-header text-[#64748B] uppercase font-semibold text-[10px] tracking-wider sticky top-0 z-10">
+            <thead className="bg-[#F8FAFC] text-[#64748B] uppercase font-semibold text-[10px] tracking-wider sticky top-0 z-10 border-b border-[#E2E8F0]">
               <tr>
-                <th className="py-3 px-4 w-16 text-center">No.</th>
-                <th className="py-3 px-4 w-28">Timestamp</th>
-                <th className="py-3 px-4 w-36">Source IP</th>
-                <th className="py-3 px-4 w-36">Destination IP</th>
-                <th className="py-3 px-4 w-24">Protocol</th>
-                <th className="py-3 px-4 w-20">Length</th>
-                <th className="py-3 px-4">Packet Description & Layer Info</th>
+                <th className="py-2.5 px-3 w-14 text-center">No.</th>
+                <th className="py-2.5 px-3 w-24">Timestamp</th>
+                <th className="py-2.5 px-3 w-32">Source IP</th>
+                <th className="py-2.5 px-3 w-32">Destination IP</th>
+                <th className="py-2.5 px-3 w-20">Protocol</th>
+                <th className="py-2.5 px-3 w-16">Length</th>
+                <th className="py-2.5 px-3">Packet Info</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#F1F5F9] font-mono text-[#182230]">
+            <tbody className="divide-y divide-[#F1F5F9] font-mono text-[#0F172A]">
               {filteredPackets.length > 0 ? (
                 filteredPackets.map((pkt) => {
                   const isSelected = selectedPacket?.packet_num === pkt.packet_num;
@@ -292,33 +280,28 @@ export const LiveCaptureView: React.FC<LiveCaptureViewProps> = ({
                     <tr
                       key={pkt.packet_num}
                       onClick={() => onSelectPacket(pkt)}
-                      className={`cursor-pointer transition-colors select-none ${
+                      className={`cursor-pointer transition-colors ${
                         isSelected
-                          ? 'bg-[#FAF8F5] border-l-4 border-l-[#C5A46D]'
+                          ? 'bg-[#EFF6FF] border-l-2 border-l-[#2563EB]'
                           : hasVuln
-                          ? 'bg-[#FDF2F2]/60 hover:bg-[#FDF2F2]'
-                          : 'hover:bg-[#FAF8F5]'
+                          ? 'bg-[#FEF2F2] hover:bg-[#FEE2E2]'
+                          : 'hover:bg-[#F8FAFC]'
                       }`}
                     >
-                      <td className="py-2.5 px-4 text-center text-[#64748B] font-semibold">{pkt.packet_num}</td>
-                      <td className="py-2.5 px-4 text-[#64748B]">{pkt.timestamp}</td>
-                      <td className="py-2.5 px-4 text-[#1D4ED8] font-semibold">{pkt.src_ip}</td>
-                      <td className="py-2.5 px-4 text-[#182230] font-semibold">{pkt.dst_ip}</td>
-                      <td className="py-2.5 px-4">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getProtocolBadge(pkt.protocol)}`}>
+                      <td className="py-2 px-3 text-center text-[#94A3B8]">{pkt.packet_num}</td>
+                      <td className="py-2 px-3 text-[#64748B]">{pkt.timestamp}</td>
+                      <td className="py-2 px-3 text-[#2563EB] font-medium">{pkt.src_ip}</td>
+                      <td className="py-2 px-3 text-[#0F172A] font-medium">{pkt.dst_ip}</td>
+                      <td className="py-2 px-3">
+                        <span className={`px-2 py-0.2 rounded text-[10px] font-semibold border ${getProtocolBadge(pkt.protocol)}`}>
                           {pkt.protocol}
                         </span>
                       </td>
-                      <td className="py-2.5 px-4 text-[#64748B]">{pkt.length} B</td>
-                      <td className="py-2.5 px-4 text-[#334155] truncate max-w-md">
-                        {(pkt as any).source_type === 'live_tshark' && (
-                          <span className="mr-2 px-1.5 py-0.5 rounded bg-[#F0FDF4] text-[#16856A] text-[9px] font-bold border border-[#DCFCE7]">
-                            LIVE
-                          </span>
-                        )}
+                      <td className="py-2 px-3 text-[#64748B]">{pkt.length} B</td>
+                      <td className="py-2 px-3 text-[#475569] truncate max-w-md">
                         {hasVuln && (
-                          <span className="mr-2 px-1.5 py-0.5 rounded bg-[#FDF2F2] text-[#C64747] text-[9px] font-bold border border-[#FDE8E8]">
-                            CLEARTEXT LEAK
+                          <span className="mr-1.5 px-1.5 py-0.2 rounded bg-[#FEF2F2] text-[#DC2626] text-[9px] font-bold border border-[#FECACA]">
+                            LEAK
                           </span>
                         )}
                         <span>{pkt.info}</span>
@@ -328,10 +311,8 @@ export const LiveCaptureView: React.FC<LiveCaptureViewProps> = ({
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#64748B] font-sans">
-                    <Radio className="w-8 h-8 mx-auto mb-2 opacity-30 text-[#C5A46D]" />
-                    <p className="text-sm font-semibold text-[#182230]">No packets matching current filter</p>
-                    <p className="text-xs text-[#64748B] mt-0.5">Start live capture or load baseline PCAP</p>
+                  <td colSpan={7} className="py-12 text-center text-[#94A3B8]">
+                    No packets matching filter
                   </td>
                 </tr>
               )}
@@ -339,58 +320,32 @@ export const LiveCaptureView: React.FC<LiveCaptureViewProps> = ({
           </table>
         </div>
 
-        {/* Footer Summary Strip */}
-        <div className="p-4 bg-[#FAF8F5] border-t border-[#E8E4DA] flex flex-wrap items-center justify-between gap-3 text-xs text-[#64748B]">
-          <div className="flex items-center gap-3">
-            <span>Showing <b className="text-[#182230]">{filteredPackets.length}</b> of {packets.length} packets</span>
-            <span className="text-slate-300">|</span>
-            <span className="text-[11px]">
-              Engine: <b className="text-[#16856A]">TShark 4.6.10 / Npcap</b>
-            </span>
-          </div>
-          <div className="text-[11px] text-[#C5A46D] font-medium">
-            Select any row to inspect complete Layer 2–7 dissection
-          </div>
+        <div className="p-3 bg-[#F8FAFC] border-t border-[#E2E8F0] flex items-center justify-between text-[11px] text-[#64748B]">
+          <span>Showing <b>{filteredPackets.length}</b> of {packets.length} packets</span>
+          <span>Click any row to inspect Layer 2–7 dissection</span>
         </div>
       </div>
 
-      {/* Permission / Authorization Modal */}
+      {/* Modal */}
       {showAuthModal && (
-        <div className="fixed inset-0 z-50 bg-[#111827]/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white border border-[#E8E4DA] rounded-xl max-w-md w-full p-6 shadow-2xl text-[#182230] space-y-4 animate-in fade-in duration-200">
-            <div className="flex items-center gap-3 pb-3 border-b border-[#E8E4DA]">
-              <div className="w-10 h-10 rounded-lg bg-[#FAF8F5] border border-[#C5A46D]/40 flex items-center justify-center text-[#C5A46D]">
-                <Shield className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-base text-[#182230]">Authorize Live Packet Capture</h3>
-                <p className="text-xs text-[#64748B]">Lab Compliance & Packet Filter Authorization</p>
-              </div>
-            </div>
-
-            <p className="text-xs text-[#475569] leading-relaxed">
-              You are about to start promiscuous packet capture on adapter <b className="text-[#182230] font-mono">{selectedIface}</b>. 
-              Under academic lab rules, packet sniffing must be conducted on authorized educational lab hardware (Machine A and Machine B).
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-[#E2E8F0] rounded-xl max-w-sm w-full p-5 shadow-xl text-[#0F172A] space-y-3">
+            <h3 className="font-semibold text-sm">Start Live Packet Capture</h3>
+            <p className="text-xs text-[#64748B] leading-relaxed">
+              Capture promiscuous traffic on adapter <b className="text-[#0F172A]">{selectedIface}</b>.
             </p>
-
-            <div className="p-3.5 bg-[#FAF8F5] rounded-lg border border-[#E8E4DA] text-xs text-[#64748B] space-y-1 font-mono">
-              <div>✓ Selected Interface: <span className="text-[#182230]">{selectedIface}</span></div>
-              <div>✓ BPF Filter: <span className="text-[#182230]">{bpfFilter || 'None (Promiscuous)'}</span></div>
-              <div>✓ Engine: <span className="text-[#16856A] font-semibold">TShark & Npcap Kernel Driver</span></div>
-            </div>
-
-            <div className="flex justify-end gap-2.5 pt-2">
+            <div className="flex justify-end gap-2 pt-1">
               <button
                 onClick={() => setShowAuthModal(false)}
-                className="px-4 py-2 rounded-lg bg-white hover:bg-[#FAF8F5] text-[#182230] text-xs font-medium border border-[#E8E4DA] transition cursor-pointer"
+                className="px-3 py-1.5 rounded-lg bg-white border border-[#E2E8F0] text-xs"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmStart}
-                className="px-4 py-2 rounded-lg bg-[#182230] hover:bg-[#111827] text-white text-xs font-semibold shadow-sm transition cursor-pointer"
+                className="px-4 py-1.5 rounded-lg bg-[#059669] text-white text-xs font-medium"
               >
-                Authorize & Start
+                Start Capture
               </button>
             </div>
           </div>

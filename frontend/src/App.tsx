@@ -32,7 +32,6 @@ export const App: React.FC = () => {
   const wsRef = useRef<WebSocket | null>(null);
   const simIntervalRef = useRef<any>(null);
 
-  // Initialize data on mount
   useEffect(() => {
     refreshAllData();
 
@@ -109,10 +108,7 @@ export const App: React.FC = () => {
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
-      ws.onopen = () => {
-        setWsConnected(true);
-      };
-
+      ws.onopen = () => setWsConnected(true);
       ws.onmessage = (event) => {
         try {
           const msg = JSON.parse(event.data);
@@ -124,17 +120,13 @@ export const App: React.FC = () => {
           console.error(e);
         }
       };
-
       ws.onclose = () => {
         setWsConnected(false);
         setTimeout(setupWebSocket, 3000);
       };
-
-      ws.onerror = () => {
-        setWsConnected(false);
-      };
+      ws.onerror = () => setWsConnected(false);
     } catch (e) {
-      console.error('WebSocket connection error:', e);
+      console.error(e);
     }
   };
 
@@ -196,8 +188,8 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#F5F2EA] text-[#182230]">
-      {/* Enterprise Midnight Navy Sidebar */}
+    <div className="flex h-screen w-screen overflow-hidden bg-[#F8FAFC] text-[#0F172A]">
+      {/* Clean White Sidebar */}
       <Sidebar 
         currentView={currentView}
         onViewChange={setCurrentView}
@@ -205,8 +197,8 @@ export const App: React.FC = () => {
         alertCount={stats?.security_summary?.credential_leaks || 1}
       />
 
-      {/* Main Workspace Layout (Warm Ivory & Pure White Content Surfaces) */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#F5F2EA]">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#F8FAFC]">
         <Navbar 
           systemStatus={systemStatus}
           wsConnected={wsConnected}
@@ -215,7 +207,7 @@ export const App: React.FC = () => {
           onRefresh={refreshAllData}
         />
 
-        <main className="flex-1 p-8 max-w-7xl w-full mx-auto space-y-6">
+        <main className="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
           {currentView === 'dashboard' && (
             <DashboardView 
               stats={stats}
