@@ -163,8 +163,22 @@ def get_lab_hosts_info() -> Dict[str, Any]:
         machine_a_mac = detected_mac
 
     # Machine B: Remote Host or Gateway
-    machine_b_ip = settings.get("machine_b_ip") or GATEWAY_IP
-    machine_b_mac = settings.get("machine_b_mac") or "00:0c:29:4d:5e:6f"
+    machine_b_ip = settings.get("machine_b_ip") or GATEWAY_IP or "192.168.1.1"
+    machine_b_mac = settings.get("machine_b_mac")
+
+    # If no custom MAC saved, dynamically query real ARP cache
+    if not machine_b_mac or machine_b_mac == "00:0c:29:4d:5e:6f":
+        try:
+            arp_res = subprocess.run(["arp", "-a", machine_b_ip], capture_output=True, text=True, timeout=2)
+            if arp_res.returncode == 0:
+                m = re.search(r"([0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2})", arp_res.stdout)
+                if m:
+                    machine_b_mac = m.group(1).replace("-", ":").lower()
+        except Exception:
+            pass
+
+    if not machine_b_mac:
+        machine_b_mac = "70:b6:4f:1e:04:f1"
 
     return {
         "machine_a": {

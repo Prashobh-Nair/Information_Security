@@ -161,9 +161,23 @@ def execute_ping(target_ip: str, count: int = 4, timeout_sec: int = 2) -> Dict[s
     from scapy.layers.inet import IP, ICMP
     from backend.config import LOCAL_IP, LOCAL_MAC
     
-    source_ip = LOCAL_IP or "127.0.0.1"
+    source_ip = LOCAL_IP or "192.168.1.6"
     source_mac = LOCAL_MAC or "1c:ce:51:32:87:5e"
-    target_mac = "00:0c:29:4d:5e:6f"
+
+    # Dynamically resolve real target MAC from Windows ARP cache
+    target_mac = None
+    try:
+        arp_res = subprocess.run(["arp", "-a", target_ip], capture_output=True, text=True, timeout=2)
+        if arp_res.returncode == 0:
+            m = re.search(r"([0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2})", arp_res.stdout)
+            if m:
+                target_mac = m.group(1).replace("-", ":").lower()
+    except Exception:
+        pass
+
+    if not target_mac:
+        # Fallback to local gateway real hardware address on 192.168.1.x subnet
+        target_mac = "70:b6:4f:1e:04:f1"
 
     for i in range(1, sent + 1):
         # 1. Echo Request

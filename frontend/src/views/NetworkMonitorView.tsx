@@ -31,7 +31,7 @@ export const NetworkMonitorView: React.FC<NetworkMonitorViewProps> = ({
   const [machineAIp, setMachineAIp] = useState(labHosts?.machine_a.ip || '192.168.1.6');
   const [machineAMac, setMachineAMac] = useState(labHosts?.machine_a.mac || '1c:ce:51:32:87:5e');
   const [machineBIp, setMachineBIp] = useState(labHosts?.machine_b.ip || '192.168.1.1');
-  const [machineBMac, setMachineBMac] = useState(labHosts?.machine_b.mac || '00:0c:29:4d:5e:6f');
+  const [machineBMac, setMachineBMac] = useState(labHosts?.machine_b.mac || '70:b6:4f:1e:04:f1');
 
   React.useEffect(() => {
     if (labHosts) {
@@ -41,7 +41,7 @@ export const NetworkMonitorView: React.FC<NetworkMonitorViewProps> = ({
       setMachineAIp(labHosts.machine_a?.ip || '192.168.1.6');
       setMachineAMac(labHosts.machine_a?.mac || '1c:ce:51:32:87:5e');
       setMachineBIp(labHosts.machine_b?.ip || '192.168.1.1');
-      setMachineBMac(labHosts.machine_b?.mac || '00:0c:29:4d:5e:6f');
+      setMachineBMac(labHosts.machine_b?.mac || '70:b6:4f:1e:04:f1');
     }
   }, [labHosts]);
 
