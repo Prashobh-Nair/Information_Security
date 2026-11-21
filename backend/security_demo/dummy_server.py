@@ -148,7 +148,9 @@ class SecurityDemoEngine:
             # REAL HTTP LIVE SOCKET EXECUTION
             # ==========================================
             post_data = urllib.parse.urlencode({"username": username, "password": password, "auth_action": "login"}).encode("utf-8")
-            actual_url = f"http://127.0.0.1:{HTTP_TEST_PORT}/api/dummy/target-login"
+            from backend.config import LOCAL_IP, LOCAL_MAC
+            bind_host = LOCAL_IP if (LOCAL_IP and LOCAL_IP != "127.0.0.1") else "127.0.0.1"
+            actual_url = f"http://{bind_host}:{HTTP_TEST_PORT}/api/dummy/target-login"
 
             # Execute actual HTTP POST request over socket
             try:
@@ -160,9 +162,20 @@ class SecurityDemoEngine:
                 with urllib.request.urlopen(req, timeout=2) as response:
                     _ = response.read()
             except Exception:
-                pass # Endpoint handles logging
+                try:
+                    # Fallback to localhost if specific IP failed
+                    fallback_url = f"http://127.0.0.1:{HTTP_TEST_PORT}/api/dummy/target-login"
+                    fallback_req = urllib.request.Request(
+                        fallback_url,
+                        data=post_data,
+                        headers={"Content-Type": "application/x-www-form-urlencoded", "User-Agent": "NetSecure-Academic-Client/2.0"}
+                    )
+                    with urllib.request.urlopen(fallback_req, timeout=2) as response:
+                        _ = response.read()
+                except Exception:
+                    pass
 
-            raw_wire_payload = f"POST /api/dummy/target-login HTTP/1.1\r\nHost: 127.0.0.1:{HTTP_TEST_PORT}\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: {len(post_data)}\r\n\r\n{post_data.decode()}"
+            raw_wire_payload = f"POST /api/dummy/target-login HTTP/1.1\r\nHost: {bind_host}:{HTTP_TEST_PORT}\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: {len(post_data)}\r\n\r\n{post_data.decode()}"
 
             # Stage 2: Browser issues cleartext HTTP POST
             steps.append({
@@ -170,7 +183,7 @@ class SecurityDemoEngine:
                 "title": "Browser Dispatches Unencrypted HTTP POST Request",
                 "actor": "Browser TCP Stack",
                 "status": "VULNERABLE",
-                "detail": f"Browser formatted HTTP POST to port {HTTP_TEST_PORT}. Payload length: {len(post_data)} bytes. No TLS encryption applied.",
+                "detail": f"Browser formatted HTTP POST to {bind_host}:{HTTP_TEST_PORT}. Payload length: {len(post_data)} bytes. No TLS encryption applied.",
                 "protocol": "HTTP (Port 80/8000)",
                 "highlight": True
             })
@@ -178,9 +191,21 @@ class SecurityDemoEngine:
             # Create synthetic/captured packet record
             from scapy.layers.l2 import Ether
             from scapy.layers.inet import IP, TCP
-            raw_pkt = Ether(src="1c:ce:51:32:87:5e", dst="00:0c:29:4d:5e:6f") / IP(src=source_ip, dst=target_ip) / TCP(sport=54321, dport=80, flags="PA") / raw_wire_payload.encode()
+            src_m = LOCAL_MAC or "1c:ce:51:32:87:5e"
+            dst_m = "70:b6:4f:1e:04:f1"
+            s_ip = LOCAL_IP or source_ip or "192.168.1.6"
+            d_ip = target_ip or "192.168.1.1"
+
+            raw_pkt = Ether(src=src_m, dst=dst_m) / IP(src=s_ip, dst=d_ip) / TCP(sport=54321, dport=80, flags="PA") / raw_wire_payload.encode()
             parsed_pkt = dissect_packet(raw_pkt, packet_num=int(time.time() * 1000) % 100000)
             insert_packet(session_id, parsed_pkt)
+
+            # Also attempt to emit on the wire using Scapy so Wireshark Wi-Fi sniffer sees it
+            try:
+                from scapy.all import sendp, conf
+                sendp(raw_pkt, verbose=False, count=1)
+            except Exception:
+                pass
 
             # Stage 3: Wire capture
             steps.append({
