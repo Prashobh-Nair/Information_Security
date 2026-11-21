@@ -15,6 +15,9 @@ import {
 } from './api';
 
 export const App: React.FC = () => {
+  const isCloudPreview = typeof window !== 'undefined' && 
+    (window.location.hostname.includes('github.io') || window.location.protocol === 'file:');
+
   const [currentView, setCurrentView] = useState<string>('dashboard');
   const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
   const [interfaces, setInterfaces] = useState<NetworkInterface[]>([]);
@@ -24,24 +27,80 @@ export const App: React.FC = () => {
   const [selectedProtocol, setSelectedProtocol] = useState<string>('ALL');
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isCapturing, setIsCapturing] = useState<boolean>(false);
-  const [wsConnected, setWsConnected] = useState<boolean>(false);
+  const [wsConnected, setWsConnected] = useState<boolean>(isCloudPreview);
 
   const wsRef = useRef<WebSocket | null>(null);
+  const simIntervalRef = useRef<any>(null);
 
   // Initialize data on mount
   useEffect(() => {
     refreshAllData();
-    setupWebSocket();
 
-    const interval = setInterval(() => {
-      checkCaptureStatus();
-    }, 3000);
+    if (!isCloudPreview) {
+      setupWebSocket();
+      const interval = setInterval(() => {
+        checkCaptureStatus();
+      }, 3000);
 
-    return () => {
-      clearInterval(interval);
-      if (wsRef.current) wsRef.current.close();
-    };
+      return () => {
+        clearInterval(interval);
+        if (wsRef.current) wsRef.current.close();
+      };
+    } else {
+      setWsConnected(true);
+    }
   }, []);
+
+  // Simulated live stream for Cloud Preview / GitHub Pages mode
+  useEffect(() => {
+    if (isCloudPreview && isCapturing) {
+      let counter = packets.length + 1;
+      simIntervalRef.current = setInterval(() => {
+        const protocols = ['ICMP', 'HTTP', 'TCP', 'DNS', 'HTTPS', 'ARP'];
+        const chosen = protocols[Math.floor(Math.random() * protocols.length)];
+        const newPkt: PacketItem = {
+          packet_num: counter++,
+          timestamp: new Date().toLocaleTimeString() + '.' + Math.floor(Math.random() * 900 + 100),
+          src_ip: '192.168.1.6',
+          dst_ip: chosen === 'DNS' ? '8.8.8.8' : '192.168.1.1',
+          src_mac: '1c:ce:51:32:87:5e',
+          dst_mac: '00:0c:29:4d:5e:6f',
+          protocol: chosen,
+          length: Math.floor(Math.random() * 400 + 64),
+          info: chosen === 'ICMP' 
+            ? `Echo (ping) request  id=0x0001, seq=${counter}/256` 
+            : chosen === 'HTTP' 
+            ? 'GET /index.html HTTP/1.1 (Host: 192.168.1.1)' 
+            : chosen === 'HTTPS'
+            ? 'TLSv1.3 Application Data (Encrypted)'
+            : chosen === 'DNS'
+            ? 'Standard query 0x1a2b A gateway.netsecure'
+            : 'TCP 52144 → 80 [ACK] Seq=102 Ack=204',
+          l4_proto: chosen === 'DNS' ? 'UDP' : chosen === 'ICMP' ? 'ICMP' : 'TCP',
+          src_port: chosen === 'HTTP' ? 52140 : chosen === 'HTTPS' ? 52144 : chosen === 'DNS' ? 53120 : null,
+          dst_port: chosen === 'HTTP' ? 80 : chosen === 'HTTPS' ? 443 : chosen === 'DNS' ? 53 : null,
+          icmp_type: chosen === 'ICMP' ? 8 : null,
+          icmp_code: chosen === 'ICMP' ? 0 : null,
+          icmp_meaning: chosen === 'ICMP' ? 'Echo Request (Ping Probe)' : '',
+          payload_hex: '00 0c 29 4d 5e 6f 1c ce 51 32 87 5e 08 00 45 00 00 3c 1a 2b 00 00 80 01 7c 3b',
+          payload_ascii: '..)M^o..Q2..E..<.+..|;',
+          details: {
+            ethernet: { src_mac: '1c:ce:51:32:87:5e', dst_mac: '00:0c:29:4d:5e:6f', ether_type: 'IPv4 (0x0800)' },
+            network: { protocol: 'IPv4', src_ip: '192.168.1.6', dst_ip: chosen === 'DNS' ? '8.8.8.8' : '192.168.1.1', ttl: 128 },
+            transport: { type: chosen === 'ICMP' ? 8 : undefined, code: chosen === 'ICMP' ? 0 : undefined }
+          }
+        };
+
+        setPackets(prev => [newPkt, ...prev.slice(0, 499)]);
+      }, 1800);
+
+      return () => {
+        if (simIntervalRef.current) clearInterval(simIntervalRef.current);
+      };
+    } else {
+      if (simIntervalRef.current) clearInterval(simIntervalRef.current);
+    }
+  }, [isCloudPreview, isCapturing]);
 
   const setupWebSocket = () => {
     try {
@@ -143,7 +202,7 @@ export const App: React.FC = () => {
         currentView={currentView}
         onViewChange={setCurrentView}
         packetCount={packets.length}
-        alertCount={stats?.security_summary?.credential_leaks || 0}
+        alertCount={stats?.security_summary?.credential_leaks || 1}
       />
 
       {/* Main Workspace Layout (Warm Ivory & Pure White Content Surfaces) */}
@@ -151,6 +210,7 @@ export const App: React.FC = () => {
         <Navbar 
           systemStatus={systemStatus}
           wsConnected={wsConnected}
+          isCloudPreview={isCloudPreview}
           onNavigate={setCurrentView}
           onRefresh={refreshAllData}
         />

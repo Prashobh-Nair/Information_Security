@@ -1,18 +1,25 @@
 import React, { useState } from 'react';
 import { 
   Shield, Activity, Wifi, Download, FileText, 
-  HelpCircle, AlertTriangle, CheckCircle2, Server, Terminal, X, ArrowUpRight
+  HelpCircle, AlertTriangle, CheckCircle2, Server, Terminal, X, ArrowUpRight, Cloud
 } from 'lucide-react';
 import { SystemStatus, getPdfReportUrl, loadSamplePcap } from '../api';
 
 interface NavbarProps {
   systemStatus: SystemStatus | null;
   wsConnected: boolean;
+  isCloudPreview?: boolean;
   onNavigate: (view: string) => void;
   onRefresh: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ systemStatus, wsConnected, onNavigate, onRefresh }) => {
+export const Navbar: React.FC<NavbarProps> = ({ 
+  systemStatus, 
+  wsConnected, 
+  isCloudPreview = false,
+  onNavigate, 
+  onRefresh 
+}) => {
   const [showTsharkHelp, setShowTsharkHelp] = useState(false);
   const [loadingSample, setLoadingSample] = useState(false);
 
@@ -46,11 +53,15 @@ export const Navbar: React.FC<NavbarProps> = ({ systemStatus, wsConnected, onNav
 
         {/* Status Indicators & Quick Actions */}
         <div className="flex items-center gap-3.5">
-          {/* WebSocket Pulse */}
+          {/* WebSocket / Cloud Stream Indicator */}
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#FAF8F5] border border-[#E8E4DA] text-xs font-sans">
             <span className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-[#16856A]' : 'bg-[#C18A35]'}`} />
             <span className="text-xs font-medium text-[#182230]">
-              {wsConnected ? 'Live Socket Connected' : 'Connecting Socket'}
+              {isCloudPreview 
+                ? 'Cloud Interactive Mode' 
+                : wsConnected 
+                ? 'Live Socket Connected' 
+                : 'Connecting Socket'}
             </span>
           </div>
 
@@ -63,7 +74,11 @@ export const Navbar: React.FC<NavbarProps> = ({ systemStatus, wsConnected, onNav
           >
             <Terminal className="w-3.5 h-3.5 text-[#182230]" strokeWidth={2} />
             <span className="text-[#64748B] font-medium">Capture Engine:</span>
-            {systemStatus?.tshark_installed ? (
+            {isCloudPreview ? (
+              <span className="text-[#16856A] font-semibold flex items-center gap-1">
+                Lab Simulation Engine <CheckCircle2 className="w-3.5 h-3.5" />
+              </span>
+            ) : systemStatus?.tshark_installed ? (
               <span className="text-[#16856A] font-semibold flex items-center gap-1">
                 TShark Verified <CheckCircle2 className="w-3.5 h-3.5" />
               </span>
@@ -108,7 +123,7 @@ export const Navbar: React.FC<NavbarProps> = ({ systemStatus, wsConnected, onNav
                   <Terminal className="w-4 h-4 text-[#C5A46D]" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-base text-[#182230]">TShark & Npcap Telemetry</h3>
+                  <h3 className="font-semibold text-base text-[#182230]">TShark & Capture Telemetry</h3>
                   <p className="text-xs text-[#64748B]">Kernel Packet Filtering & Real-Time Engine</p>
                 </div>
               </div>
@@ -121,45 +136,55 @@ export const Navbar: React.FC<NavbarProps> = ({ systemStatus, wsConnected, onNav
             </div>
 
             <div className="space-y-3.5 text-xs">
-              <div className="p-3.5 rounded-lg bg-[#FAF8F5] border border-[#E8E4DA] space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold text-[#182230]">TShark Binary Location:</span>
-                  <span className="font-mono text-[11px] text-[#16856A] font-semibold">Detected</span>
+              {isCloudPreview ? (
+                <div className="p-3.5 rounded-lg bg-[#FAF8F5] border border-[#C5A46D]/60 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-[#182230]">Hosting Environment:</span>
+                    <span className="font-mono text-[11px] text-[#16856A] font-semibold">GitHub Pages Cloud Preview</span>
+                  </div>
+                  <p className="text-[#475569] text-[11px] leading-relaxed">
+                    You are exploring the public GitHub Pages version. In this mode, pre-recorded RFC-compliant Ethernet LAN packet traces and interactive demos are rendered in memory.
+                  </p>
                 </div>
-                <p className="font-mono text-[11px] text-[#475569] break-all">
-                  {systemStatus?.tshark_path || 'C:\\Program Files\\Wireshark\\tshark.exe'}
-                </p>
-              </div>
+              ) : (
+                <div className="p-3.5 rounded-lg bg-[#FAF8F5] border border-[#E8E4DA] space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-[#182230]">TShark Binary Location:</span>
+                    <span className="font-mono text-[11px] text-[#16856A] font-semibold">Detected</span>
+                  </div>
+                  <p className="font-mono text-[11px] text-[#475569] break-all">
+                    {systemStatus?.tshark_path || 'C:\\Program Files\\Wireshark\\tshark.exe'}
+                  </p>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 rounded-lg bg-[#FAF8F5] border border-[#E8E4DA]">
-                  <span className="text-[#64748B] block text-[11px] mb-1">Npcap Driver</span>
+                  <span className="text-[#64748B] block text-[11px] mb-1">Packet Engine</span>
                   <span className="font-semibold text-[#16856A] flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Operational
+                    <CheckCircle2 className="w-3.5 h-3.5" /> {isCloudPreview ? 'Lab Trace Engine' : 'Npcap Driver Active'}
                   </span>
                 </div>
                 <div className="p-3 rounded-lg bg-[#FAF8F5] border border-[#E8E4DA]">
-                  <span className="text-[#64748B] block text-[11px] mb-1">Active Status</span>
+                  <span className="text-[#64748B] block text-[11px] mb-1">Local Hardware Sniffing</span>
                   <span className="font-semibold text-[#182230]">
-                    {systemStatus?.capture_active ? 'Capturing Frames' : 'Ready (Idle)'}
+                    {isCloudPreview ? 'Run via python run_server.py' : 'Operational'}
                   </span>
                 </div>
               </div>
 
               <div className="p-3.5 rounded-lg bg-[#FAF8F5] border border-[#E8E4DA] text-slate-600 space-y-2">
-                <h4 className="font-semibold text-[#182230] text-xs">How Live Capture Operates:</h4>
-                <ul className="list-disc pl-4 space-y-1 text-[11px] leading-relaxed">
-                  <li>Runs asynchronous <code className="bg-white px-1 py-0.5 rounded border border-[#E8E4DA] font-mono text-black">tshark -i &lt;interface&gt; -l -T ek</code>.</li>
-                  <li>Extracts multi-layer frames (Ethernet MAC, IPv4, TCP/UDP, ICMP Type/Code).</li>
-                  <li>Real-time frames stream straight to the dashboard via WebSockets.</li>
-                </ul>
+                <h4 className="font-semibold text-[#182230] text-xs">Academic Architecture:</h4>
+                <p className="text-[11px] leading-relaxed">
+                  Wireshark and TShark require physical access to a machine's network card (NIC) to sniff raw electrical/radio signals on an Ethernet cable. For your lab evaluation, running <code className="bg-white px-1 py-0.5 rounded border border-[#E8E4DA] font-mono text-black">python run_server.py</code> connects directly to Machine A's network interface.
+                </p>
               </div>
             </div>
 
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setShowTsharkHelp(false)}
-                className="px-4 py-2 rounded-lg bg-[#182230] hover:bg-[#111827] text-white text-xs font-medium transition"
+                className="px-4 py-2 rounded-lg bg-[#182230] hover:bg-[#111827] text-white text-xs font-medium transition cursor-pointer"
               >
                 Close Telemetry
               </button>
