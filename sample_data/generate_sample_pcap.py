@@ -18,12 +18,12 @@ from scapy.layers.l2 import Ether, ARP
 from scapy.layers.inet import IP, TCP, UDP, ICMP
 from scapy.layers.dns import DNS, DNSQR, DNSRR
 
-MAC_A = "00:0c:29:1a:2b:3c"
-MAC_B = "00:0c:29:4d:5e:6f"
-MAC_GATEWAY = "00:50:56:c0:00:08"
+MAC_A = "1c:ce:51:32:87:5e"
+MAC_B = "70:b6:4f:1e:04:f1"
+MAC_GATEWAY = "70:b6:4f:1e:04:f1"
 
-IP_A = "192.168.1.10"
-IP_B = "192.168.1.20"
+IP_A = "192.168.1.6"
+IP_B = "192.168.1.1"
 IP_DNS = "192.168.1.1"
 
 def build_sample_packet_sequence():

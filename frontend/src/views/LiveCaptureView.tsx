@@ -32,10 +32,17 @@ export const LiveCaptureView: React.FC<LiveCaptureViewProps> = ({
   const [selectedIface, setSelectedIface] = useState<string>('');
   const [bpfFilter, setBpfFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState<string>(selectedProtocol || 'ALL');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if (selectedProtocol) {
+      setActiveFilter(selectedProtocol);
+    }
+  }, [selectedProtocol]);
 
   React.useEffect(() => {
     if (interfaces.length > 0 && !selectedIface) {
@@ -47,19 +54,51 @@ export const LiveCaptureView: React.FC<LiveCaptureViewProps> = ({
   const protocolFilters = ['ALL', 'ICMP', 'HTTP', 'HTTPS', 'DNS', 'ARP', 'FTP', 'TCP', 'UDP'];
 
   const filteredPackets = packets.filter(p => {
-    if (selectedProtocol !== 'ALL' && p.protocol.toUpperCase() !== selectedProtocol.toUpperCase()) {
-      return false;
+    if (activeFilter && activeFilter.toUpperCase() !== 'ALL') {
+      const filter = activeFilter.toUpperCase();
+      const proto = (p.protocol || '').toUpperCase();
+      const l4 = (p.l4_proto || '').toUpperCase();
+
+      let matches = false;
+      if (filter === 'ICMP') {
+        matches = proto === 'ICMP' || l4 === 'ICMP';
+      } else if (filter === 'UDP') {
+        matches = proto === 'UDP' || l4 === 'UDP' || proto === 'DNS';
+      } else if (filter === 'TCP') {
+        matches = proto === 'TCP' || l4 === 'TCP' || ['HTTP', 'HTTPS', 'FTP'].includes(proto);
+      } else if (filter === 'HTTP') {
+        matches = proto === 'HTTP' || (p.src_port === 80 || p.dst_port === 80);
+      } else if (filter === 'HTTPS') {
+        matches = proto === 'HTTPS' || proto.startsWith('TLS') || (p.src_port === 443 || p.dst_port === 443);
+      } else if (filter === 'DNS') {
+        matches = proto === 'DNS' || (p.src_port === 53 || p.dst_port === 53);
+      } else if (filter === 'ARP') {
+        matches = proto === 'ARP';
+      } else if (filter === 'FTP') {
+        matches = proto === 'FTP' || (p.src_port === 21 || p.dst_port === 21);
+      } else {
+        matches = proto === filter || l4 === filter;
+      }
+
+      if (!matches) return false;
     }
+
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      const inSrc = p.src_ip.toLowerCase().includes(q);
-      const inDst = p.dst_ip.toLowerCase().includes(q);
-      const inInfo = p.info.toLowerCase().includes(q);
-      const inMac = p.src_mac.toLowerCase().includes(q) || p.dst_mac.toLowerCase().includes(q);
-      return inSrc || inDst || inInfo || inMac;
+      const inSrc = (p.src_ip || '').toLowerCase().includes(q);
+      const inDst = (p.dst_ip || '').toLowerCase().includes(q);
+      const inInfo = (p.info || '').toLowerCase().includes(q);
+      const inMac = (p.src_mac || '').toLowerCase().includes(q) || (p.dst_mac || '').toLowerCase().includes(q);
+      const inProto = (p.protocol || '').toLowerCase().includes(q);
+      return inSrc || inDst || inInfo || inMac || inProto;
     }
     return true;
   });
+
+  const handleProtocolClick = (proto: string) => {
+    setActiveFilter(proto);
+    onProtocolChange(proto);
+  };
 
   const handleStartClick = () => {
     setShowAuthModal(true);
@@ -226,11 +265,11 @@ export const LiveCaptureView: React.FC<LiveCaptureViewProps> = ({
           <div className="flex items-center gap-1 overflow-x-auto">
             <span className="text-[11px] text-[#94A3B8] mr-1">Filter:</span>
             {protocolFilters.map((proto) => {
-              const isActive = selectedProtocol.toUpperCase() === proto.toUpperCase();
+              const isActive = (activeFilter || 'ALL').toUpperCase() === proto.toUpperCase();
               return (
                 <button
                   key={proto}
-                  onClick={() => onProtocolChange(proto)}
+                  onClick={() => handleProtocolClick(proto)}
                   className={`px-2.5 py-0.5 rounded text-xs font-mono transition cursor-pointer ${
                     isActive
                       ? 'bg-[#2563EB] text-white font-medium'
@@ -273,12 +312,12 @@ export const LiveCaptureView: React.FC<LiveCaptureViewProps> = ({
             </thead>
             <tbody className="divide-y divide-[#F1F5F9] font-mono text-[#0F172A]">
               {filteredPackets.length > 0 ? (
-                filteredPackets.map((pkt) => {
-                  const isSelected = selectedPacket?.packet_num === pkt.packet_num;
+                filteredPackets.map((pkt, idx) => {
+                  const isSelected = selectedPacket?.packet_num === pkt.packet_num || selectedPacket?.id === pkt.id;
                   const hasVuln = pkt.details?.security?.has_credentials;
                   return (
                     <tr
-                      key={pkt.packet_num}
+                      key={`${pkt.id || pkt.packet_num || idx}-${idx}`}
                       onClick={() => onSelectPacket(pkt)}
                       className={`cursor-pointer transition-colors ${
                         isSelected
@@ -288,7 +327,7 @@ export const LiveCaptureView: React.FC<LiveCaptureViewProps> = ({
                           : 'hover:bg-[#F8FAFC]'
                       }`}
                     >
-                      <td className="py-2 px-3 text-center text-[#94A3B8]">{pkt.packet_num}</td>
+                      <td className="py-2 px-3 text-center text-[#94A3B8] font-semibold">{idx + 1}</td>
                       <td className="py-2 px-3 text-[#64748B]">{pkt.timestamp}</td>
                       <td className="py-2 px-3 text-[#2563EB] font-medium">{pkt.src_ip}</td>
                       <td className="py-2 px-3 text-[#0F172A] font-medium">{pkt.dst_ip}</td>
