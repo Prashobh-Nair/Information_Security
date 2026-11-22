@@ -203,11 +203,30 @@ function initForms() {
 
   // Ping Form
   const pingForm = document.getElementById('ping-form');
+  const targetIpInput = document.getElementById('ping-target-ip');
+
+  // Real-time synchronization as the user types a new target IP
+  if (targetIpInput) {
+    targetIpInput.addEventListener('input', () => {
+      const val = targetIpInput.value.trim();
+      if (val) {
+        document.getElementById('node-b-ip').textContent = val;
+        document.getElementById('ans-dst-ip').textContent = val;
+      }
+    });
+  }
+
   pingForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const target_ip = document.getElementById('ping-target-ip').value.trim();
     const count = parseInt(document.getElementById('ping-count-sel').value, 10);
     const consoleBox = document.getElementById('ping-console-output');
+
+    // Immediately update Machine B card
+    document.getElementById('node-b-ip').textContent = target_ip;
+    document.getElementById('ans-dst-ip').textContent = target_ip;
+    document.getElementById('node-b-mac').textContent = 'Resolving on wire...';
+    document.getElementById('ans-dst-mac').textContent = 'Resolving on wire...';
 
     consoleBox.textContent = `$ ping ${target_ip} -n ${count}\nTransmitting live ICMP Echo Requests...`;
 
@@ -264,6 +283,7 @@ function updatePingAnswers(data) {
     const a = data.exercise_12_answers;
     document.getElementById('ans-src-ip').textContent = a['1_source_ip'];
     document.getElementById('ans-dst-ip').textContent = a['2_destination_ip'];
+    document.getElementById('node-b-ip').textContent = a['2_destination_ip'];
     document.getElementById('ans-src-mac').textContent = a['4_source_mac'];
     document.getElementById('ans-dst-mac').textContent = a['5_destination_mac'];
     document.getElementById('node-b-mac').textContent = a['5_destination_mac'];
