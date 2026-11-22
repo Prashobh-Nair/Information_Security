@@ -98,23 +98,30 @@ def run_ping_probe(req: PingRequest):
     return res
 
 @app.post("/login")
-def dummy_login_handler(req: LoginRequest):
+def dummy_login_handler(req: LoginRequest, request: Request):
     """
     The Dummy Web Application Login Handler requested in Exercise 12.
     Demonstrates HTTP cleartext packet capture vs. HTTPS TLS 1.3 encryption.
+    Dynamically identifies external mobile/LAN clients vs local requests.
     """
     proto = req.protocol.upper()
     now = datetime.now().strftime("%H:%M:%S.%f")[:-3]
-    target_mac = resolve_target_mac(GATEWAY_IP or "192.168.1.1")
+    client_ip = request.client.host if (request and request.client) else HOST_IP
+    is_external = client_ip not in (HOST_IP, "127.0.0.1", "localhost")
+    
+    src_ip = client_ip if is_external else HOST_IP
+    dst_ip = HOST_IP if is_external else (GATEWAY_IP or "192.168.1.1")
+    src_mac = resolve_target_mac(client_ip) if is_external else HOST_MAC
+    dst_mac = HOST_MAC if is_external else resolve_target_mac(dst_ip)
 
     if proto == "HTTP":
         payload_str = f"username={req.username}&password={req.password}&auth_action=login"
         pkt = {
             "timestamp": now,
-            "src_ip": HOST_IP,
-            "dst_ip": GATEWAY_IP or "192.168.1.1",
-            "src_mac": HOST_MAC,
-            "dst_mac": target_mac,
+            "src_ip": src_ip,
+            "dst_ip": dst_ip,
+            "src_mac": src_mac,
+            "dst_mac": dst_mac,
             "protocol": "HTTP",
             "length": 184 + len(payload_str),
             "info": f"POST /login HTTP/1.1 (LEAK: Plaintext Password '{req.password}' Exposed)",
@@ -123,14 +130,14 @@ def dummy_login_handler(req: LoginRequest):
             "leaked_password": req.password,
             "layers": {
                 "frame": f"Frame (184 bytes on wire, 184 bytes captured on {HOST_IP})",
-                "ethernet": f"Ethernet II, Src: {HOST_MAC}, Dst: {target_mac}",
-                "ip": f"Internet Protocol Version 4, Src: {HOST_IP}, Dst: {GATEWAY_IP or '192.168.1.1'}, Protocol: TCP (6)",
-                "tcp": "Transmission Control Protocol, Src Port: 54321, Dst Port: 5000 / 80, Flags: [PSH, ACK]",
+                "ethernet": f"Ethernet II, Src: {src_mac}, Dst: {dst_mac}",
+                "ip": f"Internet Protocol Version 4, Src: {src_ip}, Dst: {dst_ip}, Protocol: TCP (6)",
+                "tcp": f"Transmission Control Protocol, Src Port: 54321, Dst Port: 5000 / 80, Flags: [PSH, ACK]",
                 "http": f"Hypertext Transfer Protocol, POST /login HTTP/1.1, Form Body: {payload_str}"
             },
             "hex_dump": (
-                f"0000  {target_mac.replace(':', ' ')} {HOST_MAC.replace(':', ' ')} 08 00\n"
-                f"0010  45 00 00 a4 3d 4e 40 00 40 06 72 1a {HOST_IP.replace('.', ' ')} {(GATEWAY_IP or '192.168.1.1').replace('.', ' ')}\n"
+                f"0000  {dst_mac.replace(':', ' ')} {src_mac.replace(':', ' ')} 08 00\n"
+                f"0010  45 00 00 a4 3d 4e 40 00 40 06 72 1a {src_ip.replace('.', ' ')} {dst_ip.replace('.', ' ')}\n"
                 f"0020  d4 31 13 88 00 01 00 00 50 18 20 00 70 80 00 00\n"
                 f"0030  50 4f 53 54 20 2f 6c 6f 67 69 6e 20 48 54 54 50\n"
                 f"0040  {payload_str.encode().hex(' ')}"
