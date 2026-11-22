@@ -1,29 +1,6 @@
-# Python & Bytecode
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
+*.pyc
 venv/
-.venv/
-
-# Database & Runtime State
-data/netsecure.db
-captures/*.pcap
-!sample_data/sample_lan_capture.pcap
-reports/*.pdf
-reports/*.csv
-
-# Node & Package Managers
-frontend/node_modules/
-frontend/.npm
-frontend/npm-debug.log*
-frontend/yarn-error.log*
-frontend/dist-ssr/
-
-# OS / Editor Files
-.DS_Store
-Thumbs.db
-.vscode/
-.idea/
+.env
+captures/
+data/
