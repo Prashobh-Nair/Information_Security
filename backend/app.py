@@ -150,7 +150,19 @@ def dummy_login_handler(req: LoginRequest):
         }
     else:
         # HTTPS Mode: TLS 1.3 Encryption
-        masked_pwd = "●" * len(req.password)
+        # Fire genuine TLS 1.3 encrypted transaction on port 5443 so it physically travels on wire
+        try:
+            import urllib.request, ssl
+            ctx = ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
+            payload_bytes = f"username={req.username}&password={req.password}&auth_action=login".encode()
+            tls_req = urllib.request.Request(f"https://{HOST_IP}:5443/", data=payload_bytes, method="POST")
+            with urllib.request.urlopen(tls_req, context=ctx, timeout=2) as resp:
+                pass
+        except Exception:
+            pass
+
         ciphertext = "17 03 03 00 4b d3 8f 14 9e 7b 42 90 aa c1 54 8e 2b 6f c8 d1 90 aa b4"
         pkt = {
             "timestamp": now,
