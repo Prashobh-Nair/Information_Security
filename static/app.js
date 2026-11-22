@@ -267,6 +267,21 @@ function updatePingAnswers(data) {
     document.getElementById('ans-src-mac').textContent = a['4_source_mac'];
     document.getElementById('ans-dst-mac').textContent = a['5_destination_mac'];
     document.getElementById('node-b-mac').textContent = a['5_destination_mac'];
+
+    const meaningBox = document.getElementById('ans-icmp-meaning');
+    if (meaningBox) {
+      if (data.packets_received > 0) {
+        meaningBox.innerHTML = `
+          <div><b>Type 8, Code 0:</b> Echo Request (Machine A asks Machine B if alive)</div>
+          <div class="mt-1" style="color: var(--green); font-weight: 600;"><b>Type 0, Code 0:</b> Echo Reply (Machine B responded alive in ${data.avg_rtt_ms || 1}ms)</div>
+        `;
+      } else {
+        meaningBox.innerHTML = `
+          <div style="color: var(--red); font-weight: 600;"><b>Type 8, Code 0:</b> Echo Request sent (${data.packets_sent} packets)</div>
+          <div class="mt-1" style="color: var(--red);"><b>No Type 0 Echo Reply:</b> Target host is offline / unreachable (100% packet loss)</div>
+        `;
+      }
+    }
   }
 }
 
