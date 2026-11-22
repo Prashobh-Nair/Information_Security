@@ -1,16 +1,22 @@
 // NetSecure - Light-Themed Wireshark Telemetry & Security Lab (app.js)
 
 let currentPackets = [];
-let selectedPacket = null;
+let selectedPacketId = null;
 let activeProtocolFilter = 'ALL';
 let currentLoginMode = 'HTTP';
+let isCapturing = false;
+let capturePollTimer = null;
+let hostInterface = 'Wi-Fi';
+let hostIp = '192.168.1.6';
 
 document.addEventListener('DOMContentLoaded', () => {
   initTabs();
+  initCaptureControls();
   initLoginModeToggle();
   initForms();
   initFilters();
   loadSystemStatus();
+  checkCaptureStatus();
   loadPackets();
 });
 
@@ -34,7 +40,106 @@ function initTabs() {
   });
 }
 
-// 2. HTTP vs HTTPS Toggle
+// 2. Live Packet Capture Controls
+function initCaptureControls() {
+  const btnStart = document.getElementById('btn-start-capture');
+  const btnStop = document.getElementById('btn-stop-capture');
+  const btnClear = document.getElementById('btn-clear-capture');
+
+  if (btnStart) {
+    btnStart.addEventListener('click', async () => {
+      await startCapture();
+    });
+  }
+
+  if (btnStop) {
+    btnStop.addEventListener('click', async () => {
+      await stopCapture();
+    });
+  }
+
+  if (btnClear) {
+    btnClear.addEventListener('click', async () => {
+      try {
+        const res = await fetch('/api/capture/clear', { method: 'POST' });
+        selectedPacketId = null;
+        await loadPackets();
+      } catch (err) {
+        console.error('Failed to clear packet store:', err);
+      }
+    });
+  }
+}
+
+async function startCapture() {
+  try {
+    const res = await fetch('/api/capture/start', { method: 'POST' });
+    const data = await res.json();
+    setCaptureUIActive(true);
+    // Start fast polling for live packets
+    if (capturePollTimer) clearInterval(capturePollTimer);
+    capturePollTimer = setInterval(() => {
+      loadPackets(true);
+    }, 800);
+  } catch (err) {
+    alert('Failed to start live capture: ' + err.message);
+  }
+}
+
+async function stopCapture() {
+  try {
+    const res = await fetch('/api/capture/stop', { method: 'POST' });
+    const data = await res.json();
+    setCaptureUIActive(false);
+    if (capturePollTimer) {
+      clearInterval(capturePollTimer);
+      capturePollTimer = null;
+    }
+  } catch (err) {
+    alert('Failed to stop live capture: ' + err.message);
+  }
+}
+
+function setCaptureUIActive(active) {
+  isCapturing = active;
+  const btnStart = document.getElementById('btn-start-capture');
+  const btnStop = document.getElementById('btn-stop-capture');
+  const pill = document.getElementById('capture-status-pill');
+  const label = document.getElementById('capture-status-label');
+
+  if (active) {
+    btnStart.classList.add('hidden');
+    btnStop.classList.remove('hidden');
+    pill.className = 'capture-status-pill active';
+    label.textContent = `Capturing Live on ${hostInterface} (${hostIp})`;
+  } else {
+    btnStop.classList.add('hidden');
+    btnStart.classList.remove('hidden');
+    pill.className = 'capture-status-pill idle';
+    label.textContent = 'Capture Inactive';
+  }
+}
+
+async function checkCaptureStatus() {
+  try {
+    const res = await fetch('/api/capture/status');
+    const data = await res.json();
+    if (data.is_capturing) {
+      setCaptureUIActive(true);
+      if (!capturePollTimer) {
+        capturePollTimer = setInterval(() => {
+          loadPackets(true);
+        }, 800);
+      }
+    } else {
+      setCaptureUIActive(false);
+    }
+  } catch (err) {
+    console.error('Error checking capture status:', err);
+  }
+}
+
+// 3. HTTP vs HTTPS Toggle
 function initLoginModeToggle() {
   const btnHttp = document.getElementById('btn-mode-http');
   const btnHttps = document.getElementById('btn-mode-https');
@@ -73,7 +178,7 @@ function initLoginModeToggle() {
   });
 }
 
-// 3. Form Handlers
+// 4. Form Handlers
 function initForms() {
   // Dummy Login Form
   const loginForm = document.getElementById('dummy-login-form');
@@ -122,7 +227,7 @@ function initForms() {
   });
 }
 
-// 4. Sniffer Result Presentation
+// 5. Sniffer Result Presentation
 function displaySnifferResult(data) {
   document.getElementById('sniffer-empty').classList.add('hidden');
   const resultBox = document.getElementById('sniffer-result');
@@ -153,7 +258,7 @@ function displaySnifferResult(data) {
   }
 }
 
-// 5. Update 6 Fields in Ping View
+// 6. Update 6 Fields in Ping View
 function updatePingAnswers(data) {
   if (data.exercise_12_answers) {
     const a = data.exercise_12_answers;
@@ -165,22 +270,23 @@ function updatePingAnswers(data) {
   }
 }
 
-// 6. Wireshark 3-Pane Packet Loader
-async function loadPackets() {
+// 7. Wireshark 3-Pane Packet Loader
+async function loadPackets(isLiveTick = false) {
   try {
     const query = activeProtocolFilter !== 'ALL' ? `?protocol=${activeProtocolFilter}` : '';
     const res = await fetch(`/api/packets${query}`);
     const data = await res.json();
     currentPackets = data.packets || [];
-    renderPacketTable();
+    renderPacketTable(isLiveTick);
   } catch (err) {
     console.error('Failed to load packets:', err);
   }
 }
 
-function renderPacketTable() {
+function renderPacketTable(isLiveTick = false) {
   const tbody = document.getElementById('packet-table-body');
   const search = document.getElementById('packet-search-input').value.toLowerCase().trim();
+  const tableContainer = document.querySelector('.table-container');
   tbody.innerHTML = '';
 
   const filtered = currentPackets.filter(p => {
@@ -198,9 +304,14 @@ function renderPacketTable() {
     return;
   }
 
+  let activeFound = false;
+
   filtered.forEach((pkt, index) => {
     const tr = document.createElement('tr');
-    if (selectedPacket && selectedPacket.id === pkt.id) tr.classList.add('selected');
+    if (selectedPacketId && selectedPacketId === pkt.id) {
+      tr.classList.add('selected');
+      activeFound = true;
+    }
     if (pkt.has_leak) tr.classList.add('has-leak');
 
     tr.innerHTML = `
@@ -212,7 +323,7 @@ function renderPacketTable() {
       <td style="color: #64748B;">${pkt.length} B</td>
       <td style="max-width: 400px; overflow: hidden; text-overflow: ellipsis;">
         ${pkt.has_leak ? '<span class="badge badge-vulnerable" style="margin-right: 4px;">LEAK</span>' : ''}
-        ${pkt.info}
+        ${escapeHtml(pkt.info)}
       </td>
     `;
 
@@ -225,13 +336,23 @@ function renderPacketTable() {
     tbody.appendChild(tr);
   });
 
-  if (!selectedPacket && filtered.length > 0) {
+  // Preserve selection or select default
+  if (!activeFound && filtered.length > 0 && !isLiveTick) {
     selectPacket(filtered[0]);
+  } else if (activeFound) {
+    const cur = filtered.find(p => p.id === selectedPacketId);
+    if (cur) selectPacket(cur);
+  }
+
+  // Handle auto-scroll to bottom during live capture
+  const chkAutoscroll = document.getElementById('chk-autoscroll');
+  if (isLiveTick && chkAutoscroll && chkAutoscroll.checked && tableContainer) {
+    tableContainer.scrollTop = tableContainer.scrollHeight;
   }
 }
 
 function selectPacket(pkt) {
-  selectedPacket = pkt;
+  selectedPacketId = pkt.id;
   document.getElementById('selected-pkt-badge').textContent = `Packet #${pkt.id || 1} [${pkt.protocol}]`;
 
   // Pane 2: OSI Layer Tree
@@ -247,6 +368,8 @@ function selectPacket(pkt) {
   else if (layers.dns) transNode.textContent = layers.dns;
   else if (layers.arp) transNode.textContent = layers.arp;
   else if (layers.ftp) transNode.textContent = layers.ftp;
+  else if (layers.tcp) transNode.textContent = layers.tcp;
+  else if (layers.udp) transNode.textContent = layers.udp;
   else transNode.textContent = pkt.info;
 
   // Pane 3: Hex Dump
@@ -261,11 +384,21 @@ function getProtoTagClass(proto) {
     case 'HTTP': return 'tag-orange';
     case 'HTTPS': return 'tag-green';
     case 'FTP': return 'tag-blue';
+    case 'TCP': return 'tag-cyan';
+    case 'UDP': return 'tag-purple';
     default: return 'tag-cyan';
   }
 }
 
-// 7. Filter Pills & Search
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+}
+
+// 8. Filter Pills & Search
 function initFilters() {
   const pills = document.querySelectorAll('#filter-pills-container .pill');
   pills.forEach(pill => {
@@ -283,18 +416,21 @@ function initFilters() {
   });
 }
 
-// 8. Load Real Host Identity
+// 9. Load Real Host Identity
 async function loadSystemStatus() {
   try {
     const res = await fetch('/api/status');
     const data = await res.json();
     if (data.machine_a) {
+      hostIp = data.machine_a.ip;
+      hostInterface = data.machine_a.interface || 'Wi-Fi';
       document.getElementById('hdr-host-ip').textContent = data.machine_a.ip;
       document.getElementById('hdr-host-mac').textContent = data.machine_a.mac;
-      document.getElementById('hdr-host-iface').textContent = data.machine_a.interface;
+      document.getElementById('hdr-host-iface').textContent = hostInterface;
 
       document.getElementById('node-a-ip').textContent = data.machine_a.ip;
       document.getElementById('node-a-mac').textContent = data.machine_a.mac;
+      document.getElementById('node-a-iface').textContent = `${hostInterface} (Active)`;
       document.getElementById('ans-src-ip').textContent = data.machine_a.ip;
       document.getElementById('ans-src-mac').textContent = data.machine_a.mac;
     }

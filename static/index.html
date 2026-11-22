@@ -159,6 +159,36 @@ username=student_alex&password=Secr3tLabP@ssw0rd!</pre>
         <p>Inspect captured network traffic with Wireshark's standard 3-pane architecture: Packet List, OSI Layer Hierarchy, and Raw Hex/ASCII Dump.</p>
       </div>
 
+      <!-- Live Capture Control Toolbar -->
+      <div class="capture-toolbar">
+        <div class="capture-toolbar-left">
+          <button id="btn-start-capture" class="btn btn-capture-start">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Start Live Capture
+          </button>
+          <button id="btn-stop-capture" class="btn btn-capture-stop hidden">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect width="16" height="16" x="4" y="4" rx="2"/></svg>
+            Stop Live Capture
+          </button>
+          <button id="btn-clear-capture" class="btn btn-secondary">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            Clear Packets
+          </button>
+        </div>
+
+        <div class="capture-toolbar-right">
+          <div id="capture-status-pill" class="capture-status-pill idle">
+            <span class="status-indicator-dot"></span>
+            <span id="capture-status-label">Capture Inactive</span>
+          </div>
+          <span class="toolbar-sep">|</span>
+          <label class="autoscroll-toggle">
+            <input type="checkbox" id="chk-autoscroll" checked>
+            <span>Auto-scroll</span>
+          </label>
+        </div>
+      </div>
+
       <!-- Protocol Filters & Search -->
       <div class="filter-bar">
         <div class="filter-pills" id="filter-pills-container">

@@ -481,6 +481,136 @@ code {
   display: none !important;
 }
 
+/* Capture Toolbar */
+.capture-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  gap: 12px;
+}
+
+.capture-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.capture-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-capture-start {
+  background: var(--green);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  padding: 6px 12px;
+}
+
+.btn-capture-start:hover {
+  background: #047857;
+}
+
+.btn-capture-stop {
+  background: var(--red);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  padding: 6px 12px;
+}
+
+.btn-capture-stop:hover {
+  background: #B91C1C;
+}
+
+.btn-secondary {
+  background: #F1F5F9;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+}
+
+.btn-secondary:hover {
+  background: #E2E8F0;
+  color: var(--text-main);
+}
+
+.capture-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: #F8FAFC;
+  color: var(--text-muted);
+}
+
+.capture-status-pill.active {
+  background: var(--green-light);
+  border-color: #A7F3D0;
+  color: #065F46;
+}
+
+.status-indicator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #94A3B8;
+  display: inline-block;
+}
+
+.capture-status-pill.active .status-indicator-dot {
+  background: var(--green);
+  animation: pulse-green 1.4s infinite;
+}
+
+@keyframes pulse-green {
+  0% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(5, 150, 105, 0);
+  }
+  100% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(5, 150, 105, 0);
+  }
+}
+
+.toolbar-sep {
+  color: #CBD5E1;
+  font-size: 12px;
+}
+
+.autoscroll-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
 /* Wireshark 3-Pane View */
 .filter-bar {
   display: flex;

@@ -1,7 +1,8 @@
 """
 NetSecure - Main Application Server (Exercise 12)
 Serves the Wireshark-Style Light-Themed Web UI, REST APIs,
-ICMP Ping Probing, and the live Dummy Login Web Application for Password Sniffing.
+Live Scapy Sniffing on physical adapter, ICMP Ping Probing,
+and the live Dummy Login Web Application for Password Sniffing.
 """
 
 from pathlib import Path
@@ -16,7 +17,15 @@ from pydantic import BaseModel
 from backend.network_info import HOST_IP, HOST_MAC, GATEWAY_IP, get_network_topology, resolve_target_mac
 from backend.ping_service import execute_ping_probe
 from backend.https_service import start_https_background_daemon
-from backend.sniffer import add_packet, get_all_packets
+from backend.sniffer import (
+    add_packet,
+    get_all_packets,
+    start_live_capture,
+    stop_live_capture,
+    get_capture_status,
+    clear_packet_store,
+    seed_exercise_12_protocols
+)
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 STATIC_DIR.mkdir(parents=True, exist_ok=True)
@@ -26,6 +35,8 @@ async def lifespan(app: FastAPI):
     # Launch background local HTTPS server on port 5443
     start_https_background_daemon()
     yield
+    # Stop capture cleanly on shutdown
+    stop_live_capture()
 
 app = FastAPI(
     title="NetSecure - Wireshark Analysis & Security Suite",
@@ -52,9 +63,31 @@ class LoginRequest(BaseModel):
     password: str
     protocol: str = "HTTP"
 
+class CaptureStartRequest(BaseModel):
+    interface: Optional[str] = None
+
 @app.get("/api/status")
 def get_system_topology(target_ip: Optional[str] = None):
     return get_network_topology(target_ip)
+
+@app.post("/api/capture/start")
+def api_start_capture(req: Optional[CaptureStartRequest] = None):
+    iface = req.interface if req else None
+    return start_live_capture(interface=iface)
+
+@app.post("/api/capture/stop")
+def api_stop_capture():
+    return stop_live_capture()
+
+@app.get("/api/capture/status")
+def api_capture_status():
+    return get_capture_status()
+
+@app.post("/api/capture/clear")
+def api_clear_capture():
+    clear_packet_store()
+    seed_exercise_12_protocols()
+    return {"status": "CLEARED", "message": "Packet store cleared and baseline reset."}
 
 @app.post("/api/ping")
 def run_ping_probe(req: PingRequest):
