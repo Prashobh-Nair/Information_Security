@@ -196,8 +196,12 @@ def dissect_scapy_packet(pkt: Packet) -> Optional[Dict[str, Any]]:
                 sport = udp.sport
                 dport = udp.dport
                 proto_name = "UDP"
-                info = f"{sport} → {dport} Len={udp.len}"
-                layers["udp"] = f"User Datagram Protocol, Src Port: {sport}, Dst Port: {dport}, Length: {udp.len}"
+                if sport in (49735, 43946) or dport in (49735, 43946):
+                    info = f"Windows Phone Link Sync (CrossDeviceService) {sport} → {dport}"
+                    layers["udp"] = f"User Datagram Protocol, Windows Phone Link (CrossDeviceService), Src: {sport}, Dst: {dport}"
+                else:
+                    info = f"{sport} → {dport} Len={udp.len}"
+                    layers["udp"] = f"User Datagram Protocol, Src Port: {sport}, Dst Port: {dport}, Length: {udp.len}"
 
                 if pkt.haslayer(DNS):
                     proto_name = "DNS"
@@ -313,6 +317,11 @@ def get_all_packets(protocol: Optional[str] = "ALL", search: Optional[str] = Non
             results = [x for x in results if x.get("protocol") in ("TCP", "HTTP", "HTTPS", "FTP")]
         elif p == "UDP":
             results = [x for x in results if x.get("protocol") in ("UDP", "DNS")]
+        elif p in ("WAN", "INTERNET"):
+            results = [
+                x for x in results 
+                if not (x.get("src_ip", "").startswith("192.168.") and x.get("dst_ip", "").startswith("192.168."))
+            ]
 
     if search and search.strip():
         q = search.strip().lower()
