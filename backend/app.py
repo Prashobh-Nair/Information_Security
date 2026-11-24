@@ -173,18 +173,18 @@ def dummy_login_handler(req: LoginRequest, request: Request):
         ciphertext = "17 03 03 00 4b d3 8f 14 9e 7b 42 90 aa c1 54 8e 2b 6f c8 d1 90 aa b4"
         pkt = {
             "timestamp": now,
-            "src_ip": HOST_IP,
-            "dst_ip": GATEWAY_IP or "192.168.1.1",
-            "src_mac": HOST_MAC,
-            "dst_mac": target_mac,
+            "src_ip": src_ip,
+            "dst_ip": dst_ip,
+            "src_mac": src_mac,
+            "dst_mac": dst_mac,
             "protocol": "HTTPS",
             "length": 1440,
             "info": "TLSv1.3 Application Data (Protected by AES-256-GCM Session Key)",
             "has_leak": False,
             "layers": {
                 "frame": f"Frame (1440 bytes on wire, 1440 bytes captured on {HOST_IP})",
-                "ethernet": f"Ethernet II, Src: {HOST_MAC}, Dst: {target_mac}",
-                "ip": f"Internet Protocol Version 4, Src: {HOST_IP}, Dst: {GATEWAY_IP or '192.168.1.1'}, Protocol: TCP (6)",
+                "ethernet": f"Ethernet II, Src: {src_mac}, Dst: {dst_mac}",
+                "ip": f"Internet Protocol Version 4, Src: {src_ip}, Dst: {dst_ip}, Protocol: TCP (6)",
                 "tcp": "Transmission Control Protocol, Src Port: 54432, Dst Port: 5443 / 443, Flags: [PSH, ACK]",
                 "tls": "Transport Layer Security, TLSv1.3 Record Layer: Application Data Protocol: http-over-tls"
             },
